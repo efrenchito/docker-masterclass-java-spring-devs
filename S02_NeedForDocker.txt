@@ -1,0 +1,134 @@
+📢 Docker Masterclass for Java Spring Boot Developers
+⚓ https://www.udemy.com/course/docker-java/learn/lecture/32740996#overview
+=======================================================================================================================================
+
+🚀 Cloud Native Course Series!
+✅ Docker
+-> Kubernetes
+-> Helm
+-> Service Mesh
+-> Crossplane
+
+
+📝 S01: Introduction
+📝 S02: Need for Docker
+📝 S03: Docker Crash Course
+📝 S04: Docker Compose
+📝 S05: Dockerizing Spring Application
+📝 S06: Integration Testing with TestContainers
+📝 S07: Assignment
+📝 S08: MockServer
+📝 S09: API Gateway / Service Integration
+📝 S10: 
+
+
+
+
+~
+
+
+
+
+📣 S02: Need for Docker
+=======================================================================================================================================
+
+
+🚀 Problem Statement
+~~~~~~~~~~~~~~~
+In the good old days, before Cloud...
+There could be multiple development teams or applications that require different technological stack and dependencies
+(This could imply different Language/Library versions and Operative Systems)
+...
+In order to isolate those applications:
+#1- Hardware         (Physical Machines)
+#2- Virtualization   (Virtual Machines)
+#3- Containerization (Docker)
+
+...
+
+📝 Differences between Virtual Machines & Docker❓
+---------------
+Virtual Machines are ineficient. Due to its internal architecture each and every VM requires a dedicated OS and CPU/RAM.
+ -> So, each Virtual Machine will be using the left over CPU/RAM from the host
+
+    [ VM#1 ]   [ VM#2 ] ...
+       OS         OS    ...
+     CPU/RAM    CPU/RAM ...
+    _____________________
+         Hypervisor
+    _____________________      
+           OS
+    _____________________           
+      Hardware (CPU/RAM) 
+    _____________________
+
+...
+
+📝 Docker Origins
+----------
+Docker Hykes started an internal proyect at dotCloud (2013)
+
+What is a Kernel❓
+-----
+It´s like the heart of the OS. (Without any Interface)
+It acts like the interface between Applications <-> Hardware(CPU | Memory | Devices)
+ -> So we can NOT use it directly. However that's when the /home directory, browser, terminal comes into place.
+ => The whole setup
+~
+This can be easily understood when we take a look at Linux Distros
+A Linux Distro is composed of Linux Kernel + an additional layer which defines how to interact with the OS
+e.g. Ubuntu | Fedora | LinuxMint
+
+Why the concept of Kernel is so important here❓
+-----
+That´s how Docker becomes lightweight compared to the VMs.
+In the case of VMs we need to install the whole OS
+However in the case of Docker only adds the Outer Layer is added for a Docker image
+(This way the Kernel doesn't need to be added again and again and it gives a lightning fast star up time for Docker )
+
+
+~
+
+
+🚀 Why should I learn Docker❓
+~~~~~~~~~~~~~~~
+Docker sounds like a sys-admins tool.
+Should a {Front-End|Backend} Developer | QA Automation learn it?
+...
+We all can use Docker for different purposes:
+ -> Increase our productivity
+ -> Improve the Development process
+
+
+Each and every application has its own set of dependencies
+...
+🕵️ Microservices 
+ -> Java Spring MVC     (Tomcat | J8)
+ -> Java Spring WebFlux (Netty |J17)
+ -> VueJS               (NodeJS)
+ -> Python              (Python-3.10)
+¬
+When working with VMs 
+ -> You should provide a set of instructions to the DevOPs team on how to deploy the application and its dependencies
+
+Docker solves the <<It works on my machine>> problem
+ -> It packages the app along with all its dependencies needed at runtime based on the Docker Image instructions
+ -> In the good all days we used to package our applications as a JAR / WAR file
+ => In the modern Cloud Native applications we take an extra step to package our application as a Docker Image
+
+
+What is Docker❓
+-----
+o An Open Source platform for
+  -> Packaging the APP + All the dependencies + Run Time
+  -> Running the Dockerized applications
+o Separate applications from the underlying Host
+
+
+~
+
+
+🚀 How can Docker run on MAC / Windows OS❓
+In a Linux Machine we can easily add only the lightweight layer for Docker to work. 
+Docker requierse a LInux Kernel, so in order to run a Docker image on MAC & Windows 
+ -> A Linux VM needs to be installed.
