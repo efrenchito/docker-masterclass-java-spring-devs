@@ -1,0 +1,110 @@
+📢 Docker Masterclass for Java Spring Boot Developers
+⚓ https://www.udemy.com/course/docker-java/learn/lecture/32740996#overview
+=======================================================================================================================================
+
+🚀 Cloud Native Course Series!
+✅ Docker
+-> Kubernetes
+-> Helm
+-> Service Mesh
+-> Crossplane
+
+
+📝 S01: Introduction
+📝 S02: Need for Docker
+📝 S03: Docker Crash Course
+📝 S04: Docker Compose
+📝 S05: Dockerizing Spring Application
+📝 S06: Integration Testing with TestContainers
+📝 S07: Assignment
+📝 S08: MockServer
+📝 S09: API Gateway / Service Integration
+📝 S10: 
+
+
+
+
+~
+
+
+
+
+📣 S01: Introduction
+=======================================================================================================================================
+
+
+📝 Assumptions & Prerequisites
+---------------
+ -> You know Java + Spring Framework
+   o Spring MVC | Spring WebFlux
+
+
+
+This course requires you to download Docker Desktop from docker site.
+⚓ https://www.docker.com/products/docker-desktop/
+
+---------------
+
+Please find the resources which might be helpful for you.
+
+Github link     - ⚓ https://github.com/vinsguru/docker-spring-webflux
+Docker commands - ⚓ https://vins-udemy.s3.amazonaws.com/docker-webflux/docker-commands.pdf
+Linux commands  - ⚓ https://vins-udemy.s3.amazonaws.com/docker-webflux/linux-cheat-sheet.pdf
+
+
+
+
+
+🚀 Application
+---------------
+
+
+                                  service-a  -->  DB
+                                  [] [] []   
+                             /
+                            /
+                           /
+                          /
+    [CLIENT]  -->  [API Gateway]
+                          \
+                           \
+                            \
+                             \
+                                  [] [] []
+                                  service-b   -->  DB
+
+                                
+
+
+
+~
+
+
+
+
+
+📝 Course Structure
+=============================================================================
+Section             |  Description
+=============================================================================
+Docker from scratch |   Just Docker
+                    |   Familiarize ourselves with Docker various commands
+                    |   How it helps me as a Developer to quickly bring some 
+                    |   applications like ngnx/Mongo/postgreSQL/etc...
+-----------------------------------------------------------------------------
+Spring Webflux      |   Develop a Microservice and package it as a Docker Image
+                    |   Use Docker for dependencies like DBs with predefined 
+                    |   test data to increase productivity
+-----------------------------------------------------------------------------
+Test Containers     |   Writing Integration Tests using Docker for our 
+                    |   Microservices to improve the quality of our deliveries
+-----------------------------------------------------------------------------
+Docker MockServer   |   How to use mock-server to start early development 
+                    |   when you depend on other Microservices
+-----------------------------------------------------------------------------
+API Gateway         |   How to simulate a mini-cloud in my machine 
+                    |   using Docker Compose + nginx
+                    |   to do path-based routing, load balancing, etc...
+=============================================================================
+
+
