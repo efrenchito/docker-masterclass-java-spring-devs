@@ -1,0 +1,137 @@
+🧐🕵️🔎 system prune | interactive mode | start|stop/kill | detached mode | logs
+port mapping | volume mapping
+~
+
+-----
+✏️>> Check the version of docker and docker-compose
+
+✏️>> Run hello-world docker image
+✏️>> Pull hello-world image from docker registry before running it
+✏️>> Run ubuntu docker image
+✏️>> Run ubuntu docker image and pass it some commands (e.g date | ls)
+✏️>> Run ubuntu docker image in interactive mode
+✏️>> Run ubuntu docker image in interactive mode and assign it a container-name
+
+✏️>> List images, containers (regardless of its status)
+✏️>> Clear all content of your local docker
+
+✏️>> Restart containers and stop running containers
+✏️>> Try to create a container with an existing name
+
+✏️>> Create a nginx container
+✏️>> Review the ports it exposes
+✏️>> Try to access via host machine 
+✏️>> Execute ´curl localhost:80´ via docker exec -it {container_id_or_name}
+✏️>> Map ports to access nginx through port 80
+✏️>> Map ports to access nginx through port 8080
+✏️>> Review the ports a container is mapped to
+
+✏️>> Run nginx in detached mode
+
+✏️>> Access container logs
+
+✏️>> Create a volume mapping from current directory to ´/a/b/c´
+✏️>> Share a single file via Volume Mapping
+✏️>> Override the index file of nginx
+✏️>> Create a volume mapping on read only mode (Try to delete an existing file)
+🧨⚠️🤯 [WINDOWS❓]  => [POWERSHELL] -v "${PWD}:/a/b/c"
+=============================================================
+
+
+$ docker version
+$ docker-compose version
+
+[CREATE]
+docker pull {image-name}
+
+docker run [options] {image-name} [command]
+docker run -it {image-name}
+docker run -it --name={container-name} {image-name}
+docker run ubuntu 
+docker run ubuntu date
+docker run ubuntu ls
+docker run [-p host-port:container-port] {image-name}
+docker run [-p host-port-1:container-port-1] [-p host-port-2:container-port-2] {image-name}
+
+docker start [options] {container_id_or_name}
+docker start -ia {container_id_or_name}
+
+
+[VIEW]
+docker images
+docker ps [-a]
+docker exec -it {container_id_or_name} bash
+  -> curl localhost
+docker logs {container_id_or_name}
+
+[DELETE]
+docker system prune -f
+docker system prune -af
+...
+docker rmi {image_id_or_name}
+docker rm {container_id_or_name}
+...
+docker stop {container_id_or_name}
+docker kill {container_id_or_name}
+
+[OPTIONS]
+docker run [-it] 
+           [--name={custom-name}] 
+           [-p {host-port:container-port}] 
+           [-d]
+           [-v [host-path:container-path]]
+               {image-name}
+docker start -ia {container_id_or_name}
+
+
+🧐🕵️🔎 {container_id_or_name} - When using container_id, recall the ID can be partial
+
+=============================================================
+
+$ docker version
+$ docker-compose version
+
+$ docker system prune -af
+$ docker system prune -f
+
+$ docker images
+$ docker run {image-name}
+$ docker pull {image-name}
+
+$ docker run hello-world
+$ docker images
+$ docker rmi hello-world
+$ docker images
+
+$ docker pull hello-world
+$ docker images
+$ docker run hello-world
+
+$ docker pull ubuntu
+$ docker images
+$ docker run ubuntu 
+
+$ docker ps
+$ docker ps -a
+~
+🧐🕵️🔎 'docker ps' will list containers in Status UP
+ -> 'docker ps -a' will list existing containers regardless of its status
+
+$ docker run ubuntu date
+$ docker run ubuntu ls
+$ docker run -it ubuntu
+$ docker run -it --name=c1 ubuntu
+$ docker run -it ubuntu --name=c1  ❌--name=c1 is not a valid command
+
+$ docker start -ia c1
+$ docker stop c1
+
+$ docker exec -it {image-name} ❌ 'docker exec' requires at least 2 arguments
+Usage:  docker exec [OPTIONS] CONTAINER COMMAND [ARG...]
+$ docker exec -it {image-name} bash
+
+...
+
+$ docker run -it -v $PWD:/a/b/c ubuntu
+$ docker run -it -v $PWD/index.htm:/a/b/c/index.html ubuntu
+$ docker run -it -v $PWD:/a/b/c:ro ubuntu
