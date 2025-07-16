@@ -1,8 +1,11 @@
 🧐🕵️🔎 system prune | interactive mode | start|stop/kill | detached mode | logs
-port mapping | volume mapping
+port mapping | volume mapping | network (none|bridge|custom bridge|host|overlay)
 ~
 
 -----
+✏️>> What is Docker?
+✏️>> [Docker Terminology] Images | Container | Registry | Dockerfile | DockerCompose
+
 ✏️>> Check the version of docker and docker-compose
 
 ✏️>> Run hello-world docker image
@@ -35,6 +38,30 @@ port mapping | volume mapping
 ✏️>> Override the index file of nginx
 ✏️>> Create a volume mapping on read only mode (Try to delete an existing file)
 🧨⚠️🤯 [WINDOWS❓]  => [POWERSHELL] -v "${PWD}:/a/b/c"
+
+✏️>> What are the different types of Network (None|Bridge|Host|Overlay)
+✏️>> Create an nginx 
+      -> Create an ubuntu container (-it) 
+      => Try to ping nginx
+
+✏️>>> Run a nginx image  (Inspect that image to identify its IP Address)
+✏️>>> Create an ubuntu image with ping utility installed or simply use 'vinsdocker/util' image
+  -> ❌ ping {container-name}
+  -> ❌ curl {container-name}
+  -> ✅ ping {IPAddress}
+  -> ✅ curl {IPAddress}
+
+✏️>>> Create a network 'my-network'
+✏️>>> Run a nginx image  ***
+✏️>>> Create an ubuntu image with ping utility installed or simply use 'vinsdocker/util' image ***
+* (--network=my-network)
+  -> ✅ ping {container-name}
+  -> ✅ curl {container-name}
+  -> ✅ ping {IPAddress}
+  -> ✅ curl {IPAddress}
+
+✏️>>> List and explain the Dockerfile commands
+ -> FROM | WORKDIR | ADD\COPY | ENV | RUN | EXPOSE | CMD\ENTRYPOINT
 =============================================================
 
 
@@ -53,6 +80,8 @@ docker run ubuntu ls
 docker run [-p host-port:container-port] {image-name}
 docker run [-p host-port-1:container-port-1] [-p host-port-2:container-port-2] {image-name}
 
+docker create
+
 docker start [options] {container_id_or_name}
 docker start -ia {container_id_or_name}
 
@@ -61,8 +90,9 @@ docker start -ia {container_id_or_name}
 docker images
 docker ps [-a]
 docker exec -it {container_id_or_name} bash
-  -> curl localhost
+  -> date | ls | mkdir dir | curl localhost
 docker logs {container_id_or_name}
+docker inspect {container_id_or_name}
 
 [DELETE]
 docker system prune -f
@@ -130,8 +160,16 @@ $ docker exec -it {image-name} ❌ 'docker exec' requires at least 2 arguments
 Usage:  docker exec [OPTIONS] CONTAINER COMMAND [ARG...]
 $ docker exec -it {image-name} bash
 
-...
-
 $ docker run -it -v $PWD:/a/b/c ubuntu
 $ docker run -it -v $PWD/index.htm:/a/b/c/index.html ubuntu
 $ docker run -it -v $PWD:/a/b/c:ro ubuntu
+[POWERSHELL] docker run -it -v "${PWD}:/a/b/c" ubuntu
+
+$ docker run --name=nginx nginx
+$ docker inspect nginx  🔎 'IPAddress'
+---
+$ docker run -it --name=vins_util vinsdocker/util
+root@80fbc8b1e4f2:/# ping nginx
+root@80fbc8b1e4f2:/# curl nginx
+root@80fbc8b1e4f2:/# ping {IPAddress}
+root@80fbc8b1e4f2:/# curl {IPAddress}

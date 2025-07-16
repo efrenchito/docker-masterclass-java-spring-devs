@@ -928,7 +928,7 @@ docker run -v /host-path:/container-path image       To map specific directory t
 --------------------------------------------------------------------------------------------------------
 docker run                                           To map multiple host paths to container paths
     -v /Users/vins/temp1:/a/b/c
-    -v /Users/vins/temp2:/a/b/d
+    -v /Users/vins/temp2:/d/e/f
     [image-name]
 --------------------------------------------------------------------------------------------------------
 [Windows Users]
@@ -960,7 +960,7 @@ docker run                                           To share a single file
 🧨⚠️🤯 Using the command $PWD on WINDOWS might NOT work as expected. 
  -> Please use POWERSHELL and run command bellow
 [POWERSHELL] docker run -it -v "${PWD}:/a/b/c" ubuntu
-
+  => 🧠 "${PWD}"
 ...
 
 [POWERSHELL]
@@ -1058,3 +1058,382 @@ $ docker run -p 80:80 -v "${PWD}:/usr/share/nginx/html" nginx
 
 [POWERSHELL]
 $ docker run -it -v "${PWD}/index.html:/a/b/c/index.html" ubuntu
+
+
+
+
+
+~
+
+
+
+
+
+🚀 Volume Mapping - Read Only Mode
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=======================================================================================================================================
+
+🧐🕵️🔎 To share a volume in Read Only Mode use the flag :ro
+
+[POWERSHELL]
+$ docker run -it --name=ubuntu -v "${PWD}:/a/b" ubuntu
+root@78ada4b416bb:/# ls
+a  bin  boot  dev  etc  home  lib  lib64  media  mnt  opt  proc  root  run  sbin  srv  sys  tmp  usr  var
+root@78ada4b416bb:/# cd /a/b
+root@78ada4b416bb:/a/b# echo "docker is awesome" > demo.txt
+root@78ada4b416bb:/a/b# ls
+demo.txt config.secure
+root@78ada4b416bb:/a/b# rm -r demo.txt
+root@78ada4b416bb:/a/b# ls
+config.secure
+root@78ada4b416bb:/a/b#
+
+~
+
+[POWERSHELL]
+$ docker run -it --name=ubuntu -v "${PWD}:/a/b:ro" ubuntu
+root@74fb7a340c31:/# ls
+a  bin  boot  dev  etc  home  lib  lib64  media  mnt  opt  proc  root  run  sbin  srv  sys  tmp  usr  var
+root@74fb7a340c31:/# cd /a/b
+root@74fb7a340c31:/a/b# echo "docker is awesome" > demo.txt
+root@74fb7a340c31:/a/b# ls
+demo.txt config.secure
+root@74fb7a340c31:/a/b# rm -r demo.txt
+root@74fb7a340c31:/a/b# rm -r config.secure
+⚠️ rm: cannot remove 'config.secure': Read-only file system
+
+
+
+
+
+~
+
+
+
+
+
+🚀 Network - Theory
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+Docker provides different network types (none|bridge|custom bridge|host|overlay)
+🧐🕵️🔎 In Docker by default containers are created in a Bridge network 
+ -> However this approach doesn't define a Server Name
+ => So, to be able to talk with other machines on that Bridge Network you need to know the IP Address
+...
+🧨⚠️🤯 The problem with this approach is that every time you restart the container 
+ -> Docker will assign a new IP Address
+ => This problem can be solved by creating our own Custom Bridge Network
+$ docker network create my-network
+$ docker run --name=nginx --network=my-network nginx
+$ docker run -it --name=vins_util --network=my-network vinsdocker/util
+=======================================================================================================================================
+Two machines can talk one another mean while they are in the same network
+🧐🕵️🔎 In Docker by default containers are created in a Bridge network 
+ -> However this approach doesn't define a Server Name
+ => So, to be able to talk with other machines on that Bridge Network you need to know the IP Address
+...
+🧨⚠️🤯 The problem with accessing a container by its IP Address this approach is that every time you restart the container 
+ -> Docker will assign a new IP Address
+ => This problem can be solved by creating our own Custom Bridge Network
+
+
+📝 Docker Network Drivers
+-----
+ o None (Disables Networking)
+ o Bridge
+   -> default
+   -> Custom / User defined
+ o Host (Works only on Linux Machine)
+   -> Place the container as part of the Host Network
+ o Overlay (For Docker swarn / We´ll cover it as part of Kubernetes)
+   -> This enables a Container in one machine to talk with another container in a different machine
+
+
+
+
+
+~
+
+
+
+
+
+🚀 Network - Demo
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=======================================================================================================================================
+
+[terminal(1)]
+$ docker run --name=nginx nginx
+...
+[terminal(2)]
+$ docker inspect nginx
+[
+    {
+        "Id": "63e5a96fd1f6734ba120c53f6734d71fdfd5df047bd3741e8c070291b7811e35",
+        "Created": "2025-06-25T17:23:37.595554292Z",
+        "Path": "/docker-entrypoint.sh",
+        ...
+        "HostConfig": {
+            ...
+            "NetworkMode": "bridge",
+         ...
+        "NetworkSettings": {
+            "Bridge": "",
+            "SandboxID": "f718b1c5eb306315828c8786f76af3ebbb98ea5272bed2adf03b8d691fbcb86e",
+            "SandboxKey": "/var/run/docker/netns/f718b1c5eb30",
+            "Ports": {
+                "80/tcp": null
+            },
+            "Gateway": "172.17.0.1",
+            "GlobalIPv6Address": "",
+            "GlobalIPv6PrefixLen": 0,
+            "IPAddress": "172.17.0.2",
+            "IPPrefixLen": 16,
+            "IPv6Gateway": "",
+            "MacAddress": "86:ce:96:c9:4b:0d",
+            "Networks": {
+                "bridge": {
+                    "IPAMConfig": null,
+                    "Links": null,
+                    "Aliases": null,
+                    "MacAddress": "86:ce:96:c9:4b:0d",
+                    "DriverOpts": null,
+                    "GwPriority": 0,
+                    "NetworkID": "06138f96d47532925633bdfc37889ecca100c1e1d3b1872bcce2f142da579f6c",
+                    "EndpointID": "eb0d8aeb08b965e649e23323dfac404382d13a900225f5f0f2fed2df6c7ddffa",
+                    "Gateway": "172.17.0.1",
+💥                 "IPAddress": "172.17.0.2",
+                    "IPPrefixLen": 16,
+                    "IPv6Gateway": "",
+                    "GlobalIPv6Address": "",
+                    "GlobalIPv6PrefixLen": 0,
+                    "DNSNames": null
+                }
+            }
+        },
+        ...
+    }
+]
+
+
+[terminal(3)]
+$ docker run -it --name=ubuntu ubuntu
+Unable to find image 'ubuntu:latest' locally
+latest: Pulling from library/ubuntu
+d9d352c11bbd: Pull complete
+Digest: sha256:b59d21599a2b151e23eea5f6602f4af4d7d31c4e236d22bf0b62b86d2e386b8f
+Status: Downloaded newer image for ubuntu:latest
+root@beecc10953a5:/# ping
+❌ bash: ping: command not found
+
+Let´s use a custom ubuntu image that contains the ping utility:
+✏️>>> Create an ubuntu image with ping utility installed or simply pull  'vinsdocker/util'
+
+$ docker pull vinsdocker/util
+Using default tag: latest
+latest: Pulling from vinsdocker/util
+21d55e4ee19d: Pull complete
+0f09a97e6dda: Pull complete
+e96e057aae67: Pull complete
+Digest: sha256:52b6fad81c3dc47ec6892d1f532fd9370b586691aea2413460b7b483886e7aa0
+Status: Downloaded newer image for vinsdocker/util:latest
+docker.io/vinsdocker/util:latest
+
+$ docker run -it --name=vins_util vinsdocker/util
+root@821b0dfa17f5:/# ping
+ping: usage error: Destination address required
+root@821b0dfa17f5:/# ping nginx
+ping: nginx: Name or service not known
+
+root@821b0dfa17f5:/# ping google.com
+PING google.com (172.217.29.14) 56(84) bytes of data.
+64 bytes from 172.217.29.14 (172.217.29.14): icmp_seq=1 ttl=63 time=38.3 ms
+64 bytes from 172.217.29.14 (172.217.29.14): icmp_seq=2 ttl=63 time=27.3 ms
+64 bytes from 172.217.29.14 (172.217.29.14): icmp_seq=3 ttl=63 time=28.3 ms
+^C
+--- google.com ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2004ms
+rtt min/avg/max/mdev = 27.304/31.307/38.275/4.945 ms
+🧨⚠️🤯 Interestingly it knows 'google.com' but it doesn't know nginx which is on the same bridge network
+🧐🕵️🔎 Why is that❓ Because that image has something known as resolv.conf which points to a DNS 
+root@821b0dfa17f5:/# cat /etc/resolv.conf
+nameserver 192.168.65.7
+...
+root@821b0dfa17f5:/# ping 172.17.0.2
+PING 172.17.0.2 (172.17.0.2) 56(84) bytes of data.
+64 bytes from 172.17.0.2: icmp_seq=1 ttl=64 time=3.51 ms
+64 bytes from 172.17.0.2: icmp_seq=2 ttl=64 time=0.116 ms
+^C
+--- 172.17.0.2 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1002ms
+rtt min/avg/max/mdev = 0.116/1.810/3.505/1.694 ms
+...
+root@821b0dfa17f5:/# curl 172.17.0.2
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+html { color-scheme: light dark; }
+body { width: 35em; margin: 0 auto;
+font-family: Tahoma, Verdana, Arial, sans-serif; }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.</p>
+
+<p>For online documentation and support please refer to
+<a href="http://nginx.org/">nginx.org</a>.<br/>
+Commercial support is available at
+<a href="http://nginx.com/">nginx.com</a>.</p>
+
+<p><em>Thank you for using nginx.</em></p>
+</body>
+</html>
+
+
+
+
+
+~
+
+
+
+
+
+🚀 Network - Custom Bridge Demo
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=======================================================================================================================================
+
+[terminal]
+$ docker network create my-network
+0567686a30ae7bbb725bc191937c17b0eeb275502632cc16310442dde3505037
+
+$ docker network ls
+NETWORK ID     NAME         DRIVER    SCOPE
+06138f96d475   bridge       bridge    local
+6a9bc164f2d9   host         host      local
+0567686a30ae   my-network   bridge    local
+b4521b03eada   none         null      local
+
+...
+
+$ docker run --name=nginx --network=my-network nginx
+
+$ docker run -it --name=ubuntu --netowrk=my-network vinsdoker/util
+root@80fbc8b1e4f2:/# cat /etc/resolv.conf
+# Generated by Docker Engine.
+# This file can be edited; Docker Engine will not make further changes once it
+# has been modified.
+
+nameserver 127.0.0.11
+options ndots:0
+
+# Based on host file: '/etc/resolv.conf' (internal resolver)
+# ExtServers: [host(192.168.65.7)]
+# Overrides: []
+# Option ndots from: internal
+
+root@80fbc8b1e4f2:/# ping nginx
+PING nginx (172.18.0.2) 56(84) bytes of data.
+64 bytes from nginx.my-network (172.18.0.2): icmp_seq=1 ttl=64 time=0.612 ms
+64 bytes from nginx.my-network (172.18.0.2): icmp_seq=2 ttl=64 time=2.80 ms
+64 bytes from nginx.my-network (172.18.0.2): icmp_seq=3 ttl=64 time=0.104 ms
+^C
+--- nginx ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2003ms
+
+root@80fbc8b1e4f2:/# curl nginx
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+html { color-scheme: light dark; }
+body { width: 35em; margin: 0 auto;
+font-family: Tahoma, Verdana, Arial, sans-serif; }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.</p>
+
+<p>For online documentation and support please refer to
+<a href="http://nginx.org/">nginx.org</a>.<br/>
+Commercial support is available at
+<a href="http://nginx.com/">nginx.com</a>.</p>
+
+<p><em>Thank you for using nginx.</em></p>
+</body>
+</html>
+root@80fbc8b1e4f2:/#
+
+
+
+
+
+~
+
+
+
+
+
+🚀 Dockerfile Commands
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=======================================================================================================================================
+
+Command                                               Description
+======================================================================================================
+FROM [image]                                             The base image for your docker image.
+                                                         Any image should extend another image
+------------------------------------------------------------------------------------------------------
+WORKDIR [path]                                           Creates a workspace / default working directory. 
+                                                         If we ignore root directory / would be used.
+------------------------------------------------------------------------------------------------------
+ADD [host-dir] [container-dir]                           Adds files from your host directory to the image
+COPY [host-dir] [container-dir]                          ADD is more or less like COPY.
+                                                         ADD can also accept url
+------------------------------------------------------------------------------------------------------
+ENV [key] [value]                                        Sets an environment variable
+------------------------------------------------------------------------------------------------------
+RUN [command]                                            Command to execute during the image build process.
+                                                         Useful to install any software or create directories etc
+------------------------------------------------------------------------------------------------------
+EXPOSE [port]                                            Exposes port
+------------------------------------------------------------------------------------------------------
+CMD [command to execute when container starts]           The command to be executed / process to be started
+ENTRYPOINT [command to execute when container starts]    when the container is created.
+======================================================================================================
+~
+🧐🕵️🔎 ADD and COPY. Both are used to transfer files into the image
+COPY  Simply copies files and directories from your build context (host machine) into the Docker image.
+ADD is similar to  COPY, but with additional features:
+ ✅ Can automatically extract tar archives (.tar, .tar.gz, .tgz, etc.).
+ ✅ Can download files from URLs.
+
+
+[✏️#~/...Dockerfile]
+FROM vinsdocker/util
+ARG "WORK=/a/b/c"
+WORKDIR ${WORK}
+ADD this-file.txt that-file.txt
+ENV JAVA_HOME ${WORK}
+RUN mkdir d
+EXPOSE 8080
+ENTRYPOINT java -jar app.jar
+
+
+
+
+
+~
+
+
+
+
+
+🚀 Dockerfile - Creating Hello World Image
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=======================================================================================================================================

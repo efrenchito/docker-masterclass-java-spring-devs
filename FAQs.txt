@@ -1,0 +1,939 @@
+🚀 Se puede utilizar variables en Dockerfile❓
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+Sí, Docker permite los comandos ARG & ENV:
+ -> ARG APP_VERSION=1.0
+ -> ENV NODE_ENV=production
+ => Luego podemos referenciar las variables mediante el caracter '$' => $APP_VERSION | $NODE_ENV
+...
+🧠 Notas importantes
+ o ARG está disponible solo durante el docker build.
+   -> RUN echo "Building version $APP_VERSION"
+   -> docker build --build-arg APP_VERSION=2.0 . 
+ o ENV está disponible en el contenedor cuando se ejecuta.
+===================================================================================================================================
+Sí, en un Dockerfile puedes utilizar variables de varias maneras. 
+Docker admite argumentos de compilación (ARG) y variables de entorno (ENV) que puedes usar durante la construcción de la imagen o en tiempo de ejecución. 
+
+Aquí te explico ambos casos:
+🛠️ 1. Usar variables con ARG (Argumentos de compilación)
+---------------
+Estas variables se usan solo durante la construcción de la imagen.
+
+# Definir un argumento
+ARG APP_VERSION=1.0
+
+# Usar el argumento
+RUN echo "Building version $APP_VERSION"
+Y al construir la imagen puedes pasarle el valor así:
+
+docker build --build-arg APP_VERSION=2.0 .
+
+
+🌍 2. Usar variables con ENV (Variables de entorno)
+---------------
+Estas se definen en la imagen y persisten en tiempo de ejecución.
+
+# Definir una variable de entorno
+ENV NODE_ENV=production
+
+# Usar la variable
+RUN echo "Running in $NODE_ENV mode"
+También puedes combinarlas:
+
+ARG APP_VERSION=1.0
+ENV VERSION=$APP_VERSION
+
+🧠 Notas importantes
+ -> ARG está disponible solo durante el docker build.
+ -> ENV está disponible en el contenedor cuando se ejecuta.
+
+Las variables se pueden usar en muchas instrucciones: RUN, CMD, ENTRYPOINT, ENV, LABEL, EXPOSE, etc.
+
+
+
+
+
+~
+
+
+
+
+
+🚀 Cómo usar 'pwd - Current Working Directory' en docker run (Linux)❓
+===================================================================================================================================
+Cuando usas docker run en Linux y quieres montar un volumen desde tu directorio actual (o usar la ruta actual en general), puedes usar pwd para obtener la ruta absoluta del directorio actual.
+
+✅ Ejemplo básico
+docker run -v $(pwd):/app my-image
+Esto:
+
+Usa $(pwd) para obtener el directorio actual (en Linux y bash).
+
+Monta ese directorio local en /app dentro del contenedor.
+
+🔄 Alternativa con ${PWD}
+También puedes usar ${PWD} (una variable de entorno estándar de bash):
+
+docker run -v ${PWD}:/app my-image
+Ambas formas funcionan bien en bash y shells compatibles (como zsh o sh).
+
+⚠️ Importante: cuidado con permisos
+Si montas tu directorio actual, asegúrate de que:
+
+El contenedor tenga permisos para leer/escribir si es necesario.
+
+No montes accidentalmente archivos sensibles como .env, id_rsa, etc.
+
+
+
+
+
+~
+
+
+
+
+
+🚀 What is the difference between RUN and CMD/ENTRYPOINT❓
+🚀 Are those instructions executed with 'docker start' command❓
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+📝 RUN is executed during docker build phase  e.g. Install packages and create files
+🔎 It's NOT executed again when you run the container.
+...
+📝 CMD and ENTRYPOINT – is executed at docker Runtime when it starts
+ -> It defines the container’s default behavior when it starts.
+===================================================================================================================================
+🧱 RUN vs CMD/ENTRYPOINT – Key Differences
+
+Instruction	        When it's executed	                  Purpose
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+RUN	                 At build time (during docker build)   To build the image (e.g., install packages, create files)
+CMD / ENTRYPOINT	 At container runtime (docker run)	   To define what should execute when the container starts
+
+
+🔧 RUN – Build Time
+---------------
+Used to execute commands that modify the image during build.
+
+RUN apt-get update && apt-get install -y curl
+Executed during docker build.
+
+Its effect is stored in the image.
+
+🔎 It's NOT executed again when you run the container.
+
+
+
+🚀 CMD and ENTRYPOINT – Runtime
+---------------
+Used to define the container’s default behavior when it starts.
+
+CMD ["node", "app.js"]
+# or
+ENTRYPOINT ["python", "script.py"]
+Key difference:
+CMD is like the default argument; it can be overridden in docker run.
+
+ENTRYPOINT is the main command; arguments passed to docker run are appended to it (unless overridden with --entrypoint).
+
+
+🧠 Are these executed with docker start?
+---------------
+❌ docker start does not re-run 💥RUN instructions💥 (those are only run during docker build).
+...
+✅ docker run → YES, CMD/ENTRYPOINT are executed.
+✅ docker start → YES, but only if the container was created/stopped before and already had those commands set.
+
+
+📌 Summary
+Command  	 Executed when?	                        Can be overridden?
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ RUN Build	  During docker build	                 No
+ CMD 	      Run On docker run / start	             Yes
+ ENTRYPOINT	  Run On docker run / start	Partially    (args only)
+
+
+✏️>>> Let's walk through a concrete example that demonstrates how RUN, CMD, and ENTRYPOINT behave differently.
+
+🔧 Example Dockerfile
+[✏️#~/...Dockerfile]
+# Dockerfile
+FROM alpine:3.18
+# RUN is executed during `docker build`
+RUN echo "Building the image..."
+# ENTRYPOINT defines the base command
+ENTRYPOINT ["echo"]
+# CMD defines default arguments for ENTRYPOINT
+CMD ["Hello from CMD"]
+
+
+📦 Step-by-step Usage
+~~~~~~~~~~~~~~~~~~~~
+#1. Build the image
+-----
+docker build -t my-demo .
+🧐🕵️🔎 '-t' Defines the name or tag for the image you are building
+~
+During build, you'll see:  'Building the image...'
+This is from the RUN instruction. This line is executed only during docker build.
+
+
+#2. Run the container
+-----
+docker run my-demo
+This runs the final container and uses:
+
+ENTRYPOINT ["echo"]
+CMD ["Hello from CMD"]
+
+🔄 Result:
+Hello from CMD
+The container runs echo "Hello from CMD".
+
+#3. Override CMD at runtime
+-----
+docker run my-demo "Goodbye"
+This overrides the CMD part (but not ENTRYPOINT).
+
+🔄 Result:
+Goodbye
+
+#4. Override ENTRYPOINT
+-----
+docker run --entrypoint cat my-demo /etc/alpine-release
+This overrides the entire command and ignores CMD.
+
+🔄 Result:
+3.18.4
+5. Use docker start after stopping
+docker run --name mycontainer my-demo
+# Output: Hello from CMD
+
+docker stop mycontainer
+docker start mycontainer
+# Output again: Hello from CMD
+✅ The ENTRYPOINT + CMD are re-executed on docker start, but the image is not rebuilt, and RUN is not re-run.
+
+📌 Summary
+Command	    Purpose	When Run
+RUN	        Build image	During docker build
+CMD	        Default args to command	During docker run/start
+ENTRYPOINT	Main executable	During docker run/start
+
+
+
+
+
+~
+
+
+
+
+
+🚀 Explain to me the docker lifecycle
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+===================================================================================================================================
+Let's go through the Docker container lifecycle...
+ -> Which explains what happens from the time you write a Dockerfile to when containers are built, run, stopped, and removed.
+
+🌀 Docker Lifecycle: Step-by-Step Overview
+#1. Write a Dockerfile - It describes how to build an image and what it should do at runtime.
+-----
+FROM | WORKDIR | RUN | CMD | COPY/ADD | ENTRYPOINT/CMD
+✅ You do this manually.
+
+#2. Build the Image
+-----
+docker build -t my-image .
+Docker reads the Dockerfile line by line.
+🧐🕵️🔎 '-t' Defines the name or tag for the image you are building
+
+Executes RUN, COPY, etc.
+Creates a layered image.  🧨⚠️🤯 Each step creates a layer that's cached if unchanged.
+✅ Output: a reusable Docker image (like a snapshot of a ready-to-run system).
+
+#3. Create/Run a Container
+-----
+docker run --name my-container my-image
+This does two things:
+ -> Creates a container from the image (if it doesn’t already exist).
+ -> Starts it using ENTRYPOINT + CMD.
+➡️ Container gets its own filesystem, process tree, and network.
+🧨⚠️🤯 Watch out, when issuing 'docker start' you need to atach the output to see the logs -> docker start -a
+
+
+#4. Container is Running
+-----
+Once started, the container:
+Runs the process defined in CMD or ENTRYPOINT. Is isolated (sandboxed).
+ -> Can be interacted with via docker exec, logs, or port mappings.
+⏳ It stays alive as long as the main process inside it is running.
+
+#5. Stop the Container
+-----
+docker stop my-container
+Sends a SIGTERM signal (graceful shutdown).
+After a timeout, SIGKILL is sent.
+Container transitions to "exited" state.
+
+#6. Restart or Start Again
+-----
+docker start my-container
+Re-runs the same container (from its stopped state).
+Executes the original CMD/ENTRYPOINT again.
+No changes to the image or file system unless they were made during the previous run.
+You can also use docker restart to stop and start in one command.
+🧨⚠️🤯 Watch out, when issuing 'docker start' you need to atach the output to see the logs -> docker start -a
+
+#7. Remove Container
+-----
+docker rm my-container
+Deletes the container.
+🔎 The image still exists. 
+For a container that's not running:
+
+docker rm my-container
+docker rm -f my-container
+(docker container rm my-container)
+🧐🕵️🔎 Use flag -f to force the removal (Applies for running containers)
+
+#8. Remove the Image (Optional)
+-----
+docker rmi my-image
+docker rmi -f my-image
+(docker image rm my-image)
+🧐🕵️🔎 Use flag -f to force the removal (Applies for running containers)
+
+🧠 Summary: Docker Lifecycle States
+Dockerfile → docker build → Image
+Image → docker run → Container (Running)
+Container (Running) → docker stop → Container (Stopped)
+Container (Stopped) → docker start → Container (Running again)
+Container → docker rm → Removed
+Image → docker rmi → Removed
+Would you like a diagram to visualize this? Or a script to show the lifecycle in action?
+
+
+
+
+
+~
+
+
+
+
+
+🚀 Why does the docker image 'hello-world' once stopped. Doesn't display the "Hello world" message when executing 'docker start'❓
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+===================================================================================================================================
+
+🔍 Why doesn't docker start show the "Hello from Docker" message?
+TL;DR:
+Because docker start does not attach to the container's output, and the hello-world container exits immediately after printing the message.
+
+🧪 Let's break it down:
+🔹 Step 1: Run hello-world image
+docker run hello-world
+This creates a new container and starts it.
+
+It prints:
+
+Hello from Docker!
+This message shows that your installation appears to be working correctly.
+...
+Then, it exits immediately.
+
+You see the output because docker run attaches your terminal to the container's output by default.
+
+🔹 Step 2: Try to docker start it again
+docker start hello-world
+The container starts.
+
+It prints the message again inside the container, but:
+
+It exits immediately again.
+
+You don’t see the message because docker start does not attach to the logs.
+
+➕ Optional: Attach and see output
+If you want to see the output when restarting the container:
+
+docker start -a hello-world
+✅ The -a (or --attach) flag reattaches your terminal, just like docker run does.
+
+You’ll now see the message again.
+
+⚠️ Important Concept: Ephemeral Containers
+The hello-world container is:
+
+Short-lived
+
+Prints a message, then exits
+
+Doesn't wait for any interaction
+
+So without attaching (-a), the output is gone before you can even look at it.
+
+🧠 Summary
+Command	Behavior
+docker run	Creates + starts + attaches
+docker start	Just starts (no output shown)
+docker start -a	Starts and shows output
+docker logs <id>	Show previous logs (after the fact)
+Let me know if you'd like to explore how to build your own minimal "hello-world" image to test this behavior hands-on.
+
+Tú dijiste:
+yes
+ChatGPT Plus
+Awesome! Let’s create a minimal Docker image that mimics hello-world, so you can see and understand exactly how it works.
+
+🔧 Step-by-Step: Build Your Own hello-world Image
+📝 1. Create a Project Folder
+mkdir my-hello-world
+cd my-hello-world
+🐳 2. Create a Simple Dockerfile
+Create a file named Dockerfile:
+
+# Use a tiny base image
+FROM alpine:3.18
+
+# This is the command that runs when the container starts
+CMD echo "👋 Hello from my custom Docker image!"
+Explanation:
+
+FROM alpine → small Linux image (~5 MB).
+
+CMD echo ... → when the container starts, it prints the message and exits.
+
+🔨 3. Build the Image
+docker build -t my-hello-world .
+You'll see something like:
+
+Successfully tagged my-hello-world:latest
+🚀 4. Run the Container
+docker run my-hello-world
+Expected output:
+
+👋 Hello from my custom Docker image!
+✅ The container runs, prints the message, and exits — just like hello-world.
+
+🧪 5. Try Starting It Again
+docker ps -a
+Find the container's name or ID, e.g., hungry_morse.
+
+docker start hungry_morse
+❌ No output.
+
+docker start -a hungry_morse
+✅ Output appears again:
+
+👋 Hello from my custom Docker image!
+🧼 6. Clean Up (Optional)
+docker container rm hungry_morse
+docker image rm my-hello-world
+✅ Recap
+Command	What it does
+docker run	Builds + starts + shows output
+docker start	Starts existing container (no output shown)
+docker start -a	Starts and attaches, shows output
+CMD in Dockerfile	Runs at container start, after image is built
+Want to extend it with ENTRYPOINT, a script, or use input from the user next?
+
+Tú dijiste:
+Why does 'hello-world' docker image exits immediately 
+But 'ubuntu' docker image keeps running?
+ChatGPT Plus
+Great question — this is all about what the container does when it starts, and specifically what command is set in the image’s CMD or ENTRYPOINT.
+
+Let’s break it down.
+
+🧩 Key Principle of Docker
+A container runs as long as its main process (PID 1) is running.
+When that process exits, the container stops.
+
+So the real question is: What is PID 1 (the main process) in each image?
+
+🔹 hello-world image
+What it does:
+Its CMD just prints a message and exits.
+
+Dockerfile (simplified):
+FROM scratch
+COPY hello /
+CMD ["/hello"]
+/hello is a small compiled binary that prints a message and exits immediately.
+
+No background process, no shell — nothing left to do.
+
+Result:
+docker run hello-world
+# Prints message
+# Container exits
+✅ Works as a one-shot test image.
+
+🔸 ubuntu image
+What it does:
+The base Ubuntu image starts a shell (bash or sh) by default.
+
+Dockerfile (simplified):
+FROM ubuntu
+CMD ["bash"]
+So when you run it:
+
+docker run -it ubuntu
+It starts an interactive bash shell.
+
+The shell stays open, waiting for input.
+
+The container keeps running as long as that shell is alive.
+
+Headless example:
+docker run ubuntu
+If not run with -it, it still runs bash, but no terminal is attached.
+
+Depending on settings, it might exit quickly if the shell gets no input.
+
+To keep it running in the background:
+
+docker run -d ubuntu sleep infinity
+✅ Summary
+Image	Default Command (CMD)	Behavior
+hello-world	Run /hello binary	Prints once and exits immediately
+ubuntu	Starts bash shell	Stays running (if shell stays open)
+🧠 Key Rule:
+If your container's main process exits, the container stops.
+Docker doesn’t "keep things running" magically — it's just managing the lifecycle of a Unix process inside an isolated environment.
+
+Would you like to try modifying an image to see what happens with different CMDs like sleep, bash, or your own script?
+
+Tú dijiste:
+yes
+ChatGPT Plus
+Awesome! Let's experiment with modifying an image's CMD to control how long a container stays running.
+
+We’ll use a custom image based on ubuntu and try different behaviors like:
+
+A container that exits immediately
+
+A container that sleeps forever
+
+A container that runs a custom shell script
+
+🔧 Step-by-Step: Modify CMD in Dockerfile
+Create a new project folder:
+
+mkdir docker-cmd-demo
+cd docker-cmd-demo
+📝 1. Create a Simple Dockerfile
+# Dockerfile
+FROM ubuntu:22.04
+
+# Install bash (just in case)
+RUN apt-get update && apt-get install -y bash
+
+# Option 1: Exit immediately (commented out)
+# CMD ["echo", "Goodbye!"]
+
+# Option 2: Sleep forever
+# CMD ["sleep", "infinity"]
+
+# Option 3: Run a custom script
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+CMD ["/entrypoint.sh"]
+🖋️ 2. Add a Custom Script
+Create a file named entrypoint.sh:
+
+#!/bin/bash
+echo "🟢 Container is starting..."
+sleep 5
+echo "✅ Task done. Exiting."
+This simulates a short-lived task with a sleep in between.
+
+🔨 3. Build the Image
+docker build -t ubuntu-cmd-demo .
+🚀 4. Run the Container
+docker run --name test1 ubuntu-cmd-demo
+You should see:
+
+🟢 Container is starting...
+✅ Task done. Exiting.
+Then the container exits.
+
+🧪 5. Try the Other CMDs
+✅ A. Keep it running
+Edit your Dockerfile to use:
+
+CMD ["sleep", "infinity"]
+Rebuild:
+
+docker build -t ubuntu-cmd-demo .
+Then run:
+
+docker run -d --name test2 ubuntu-cmd-demo
+Check if it's running:
+
+docker ps
+✅ The container will stay alive forever (or until you stop it):
+
+docker stop test2
+✅ B. Print and exit
+Change CMD to:
+
+CMD ["echo", "Goodbye!"]
+Rebuild and run:
+
+docker build -t ubuntu-cmd-demo .
+docker run --name test3 ubuntu-cmd-demo
+It should just print:
+
+Goodbye!
+And then stop immediately.
+
+✅ Summary
+CMD	Behavior
+["echo", "Goodbye!"]	Prints and exits immediately
+["sleep", "infinity"]	Runs forever
+["/entrypoint.sh"]	Runs your custom logic
+Want to try using ENTRYPOINT next, or simulate a container that runs a real service like a web server?
+
+Tú dijiste:
+In a Dockerfile... 
+What I can do with ENTRYPOINT can be done with CMD?
+Or is there any particular tasks that should be used with ENTRYPOINT and no CMD?
+ChatGPT Plus
+Excellent question — this touches on a common point of confusion when writing Dockerfiles.
+
+🧠 TL;DR
+You can do most things with CMD that you can with ENTRYPOINT, but they behave differently — and some use cases strongly favor ENTRYPOINT.
+
+Let’s break it down.
+
+⚙️ CMD vs ENTRYPOINT — Behavior Differences
+🟦 CMD
+Acts as default arguments to the container's main process.
+
+Can be fully overridden when running the container.
+
+Example:
+
+CMD ["python", "app.py"]
+You can override it like this:
+
+docker run my-image another-command
+Result: the container runs another-command, ignoring CMD.
+
+🟨 ENTRYPOINT
+Defines the main executable.
+
+Arguments passed via docker run are appended to ENTRYPOINT, not replace it.
+
+Example:
+
+ENTRYPOINT ["python"]
+CMD ["app.py"]
+Then:
+
+docker run my-image
+# → python app.py
+
+docker run my-image other_script.py
+# → python other_script.py
+So ENTRYPOINT is not overridden by default — unless you use --entrypoint.
+
+✅ Use Cases: When to Use What?
+Task / Use Case	Prefer CMD	Prefer ENTRYPOINT
+Set default command (easy to override)	✅	❌
+Enforce an unchangeable command	❌	✅
+Container as CLI (e.g. docker run curl)	❌	✅
+Shell-like flexibility (can override full command)	✅	❌
+You want to wrap user commands (e.g. logging, checks)	❌	✅
+🧪 Example: CLI-Style Container
+You want this behavior:
+docker run my-curl-container https://example.com
+Use:
+
+FROM curlimages/curl
+ENTRYPOINT ["curl"]
+You can’t do this with just CMD, because the user input would replace CMD, not append to it.
+
+🛠 Practical Tip
+You can combine them:
+
+ENTRYPOINT ["python"]
+CMD ["app.py"]
+This allows the user to override just the arguments (not the command):
+
+docker run my-image → python app.py
+
+docker run my-image test.py → python test.py
+
+docker run --entrypoint bash my-image → override completely
+
+🧠 Summary
+Feature	CMD	ENTRYPOINT
+Sets default command	✅	✅ (if no CMD present)
+Can be overridden	✅ (easily)	🚫 (unless forced)
+Useful for CLI tools	❌	✅
+Good for scripts	✅	✅
+Works together	✅	✅
+Would you like to try building a CLI-style container or one that wraps user input (e.g. logs then runs a command)?
+
+Tú dijiste:
+both
+ChatGPT Plus
+Perfect — let's build two Docker images to demonstrate:
+
+✅ A CLI-style container using ENTRYPOINT
+
+🔄 A container that wraps user input, logs it, and then runs it
+
+These are excellent use cases for ENTRYPOINT.
+
+🧰 1. CLI-Style Container (like curl)
+We’ll create a container that wraps the ping command:
+
+📁 Folder structure
+cli-ping/
+├── Dockerfile
+📄 Dockerfile (CLI-style)
+# cli-ping/Dockerfile
+FROM alpine:3.18
+
+RUN apk add --no-cache iputils
+
+ENTRYPOINT ["ping"]
+✅ Build and Test
+cd cli-ping
+docker build -t cli-ping .
+docker run cli-ping 8.8.8.8 -c 2
+Output:
+
+PING 8.8.8.8 (8.8.8.8): 56 data bytes
+64 bytes from 8.8.8.8: seq=0 ttl=117 time=10.1 ms
+64 bytes from 8.8.8.8: seq=1 ttl=117 time=10.3 ms
+--- 8.8.8.8 ping statistics ---
+2 packets transmitted, 2 packets received, 0% packet loss
+✅ Success! You passed arguments (8.8.8.8 -c 2) to the container, and ping handled them.
+
+🔄 2. Wrapper Container (Logging + Running)
+We’ll create a container that:
+
+Logs the command being run
+
+Executes it
+
+📁 Folder structure
+command-wrapper/
+├── Dockerfile
+├── entrypoint.sh
+📄 entrypoint.sh
+#!/bin/sh
+echo "📝 Executing: $@"
+exec "$@"
+$@ = all passed arguments
+
+exec replaces the shell with the actual command (important for PID 1)
+
+📄 Dockerfile
+# command-wrapper/Dockerfile
+FROM alpine:3.18
+
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
+✅ Build and Test
+cd command-wrapper
+docker build -t cmd-wrapper .
+
+# Run ls in /
+docker run cmd-wrapper ls /
+
+# Run echo
+docker run cmd-wrapper echo "It works!"
+🔎 Output:
+📝 Executing: ls /
+bin
+dev
+etc
+home
+...
+
+📝 Executing: echo It works!
+It works!
+✅ It logs, then runs any command you pass — and thanks to exec, it doesn't leave a zombie shell process.
+
+🧠 Recap
+Example	Behavior	Dockerfile Strategy
+cli-ping	Acts like ping CLI	ENTRYPOINT ["ping"]
+cmd-wrapper	Logs and runs passed command	Wrapper script + ENTRYPOINT
+Would you like to add argument validation, logging to a file, or error handling next?
+
+
+
+
+
+~
+
+
+
+
+
+🚀 Interpretes Linux
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+===================================================================================================================================
+
+🧠 Tipos comunes de intérpretes en Linux
+~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ 
+
+Intérprete	   Ruta típica	           Características principales
+----------------------------------------------------------------------
+Bash	        /bin/bash	            El más usado; soporta scripting avanzado, historial, autocompletado, arrays, etc.
+Sh	            /bin/sh	                Shell POSIX básico; más limitado, más portable
+Zsh	            /bin/zsh	            Similar a Bash pero con más funcionalidades interactivas; usado con Oh My Zsh
+Dash	        /bin/dash	            Shell muy ligero y rápido; usado como /bin/sh en Ubuntu
+Fish	        /usr/bin/fish	        Shell moderno con sintaxis amigable y resaltado de comandos
+Ksh	            /bin/ksh	            Korn shell, mezcla entre sh y características avanzadas
+Tcsh / Csh	    /bin/tcsh, /bin/csh	    Sintaxis estilo C; menos común para scripting
+BusyBox Shell	/bin/sh (Alpine/Embedded Systems)	Shell mínimo incluido en sistemas ligeros; muy limitado
+Ash	/bin/ash	Almquist shell;         Usado en sistemas minimalistas (BusyBox/Alpine)
+
+
+
+
+
+✅ ¿Cuál deberías usar?
+~ ~ ~ ~ ~ ~ ~ ~ ~ ~ 
+
+Necesitas...	                        Usa...
+-------------------------------------------------------
+Compatibilidad POSIX	                sh, dash
+Funcionalidad avanzada para scripting	bash, zsh
+Interfaz interactiva moderna	        zsh, fish
+Shell ligero para contenedores/Docker	ash, sh (BusyBox)
+~
+✔️ Bash es ideal para scripts complejos. Tiene soporte para arrays, expresiones regulares, condicionales avanzados, etc.
+✔️ sh es más portátil, pero más limitado. No admite arrays ni algunas construcciones modernas.
+✔️ Zsh combina lo mejor de Bash con mejor experiencia de línea de comandos.
+⚠️ Fish no es POSIX compatible, pero tiene una sintaxis muy legible.
+
+
+✏️ ¿Cómo probar estos scripts?
+~ ~ ~ ~ ~ ~ ~ ~ ~ ~ 
+🧐🕵️🔎 El shebang (#!/bin/bash, etc.) se usa para que Linux sepa qué intérprete usar al ejecutar el script.
+#1. Crea un archivo con extension .sh 'demo.sh'
+#2. Hazlo ejecutable  -> ✏️>>> chmod +x demo.sh
+#3. Ejecutalo directamente  -> ✏️>>> ./demo.sh
+
+
+
+
+
+🚀 Qué instrucciones se le debe pasar a un Dockerfile para que este reciba instrucciones como si fuese una terminal bash❓
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+===================================================================================================================================
+Para que un Dockerfile reciba y ejecute instrucciones como si estuvieras en una terminal bash, hay dos enfoques principales:
+📝 Opt1: Usar SHELL para cambiar el intérprete por defecto  -> ✏️>>> SHELL ["/bin/bash", "-c"]
+📝 Opt2: Usar Bash solo en un comando específico            -> ✏️>>> RUN bash -c '{COMMAND}'
+          ⚠️ (Útil si solo necesitas Bash en un par de líneas, pero NO quieres cambiar el intérprete por defecto.)
+
+
+~
+
+✅ Opción 1: Usar SHELL para cambiar el intérprete por defecto
+~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+Por defecto, muchas imágenes usan sh (Alpine, por ejemplo) o bash (Debian/Ubuntu). 
+Si quieres asegurarte de que todas las instrucciones RUN se ejecuten usando Bash, puedes declarar:
+✏️>>> SHELL ["/bin/bash", "-c"]
+
+
+[✏️#~/...Dockerfile]
+FROM ubuntu:22.04
+SHELL ["/bin/bash", "-c"]
+RUN echo "Hola desde Bash"
+RUN for i in {1..3}; do echo "Iteración $i"; done
+...
+🔍 Esto te permite usar expansión de Bash, bucles, variables, condicionales, etc., en los comandos RUN.
+
+
+
+✅ Opción 2: Usar Bash solo en un comando específico
+~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ 
+Esto es útil si solo necesitas Bash en un par de líneas, pero no quieres cambiar el intérprete por defecto.
+✏️>>> RUN bash -c 'for i in {1..5}; do echo "Paso $i"; done'
+
+⚠️ Requisitos
+Asegúrate de que bash esté instalado en la imagen base.
+
+En ubuntu o debian: ya viene por defecto.
+
+En alpine, debes instalarlo:
+
+[✏️#~/...Dockerfile]
+RUN apk add --no-cache bash
+🔧 Diagnóstico rápido (opcional)
+Puedes añadir este comando para ver qué shell se está usando en un paso RUN:
+
+
+RUN echo $0
+Esto mostrará /bin/sh o /bin/bash, dependiendo del contexto.
+
+¿Te gustaría un ejemplo práctico de un Dockerfile con Bash que reciba comandos dinámicamente desde el build (--build-arg), o con un CMD interactivo tipo terminal?
+
+
+
+Perfecto. A continuación te muestro un ejemplo completo de un Dockerfile que:
+
+Usa Bash como intérprete por defecto.
+
+Acepta argumentos dinámicos en tiempo de build (--build-arg).
+
+Permite lanzar un terminal interactivo tipo Bash cuando el contenedor corre.
+
+🧱 Dockerfile: Interactivo y con argumentos Bash
+Dockerfile
+Copiar
+Editar
+# Imagen base con Bash
+FROM ubuntu:22.04
+
+# Establecer Bash como shell por defecto para todos los comandos RUN
+SHELL ["/bin/bash", "-c"]
+
+# Aceptar un argumento en tiempo de build
+ARG SALUDO=Hola
+
+# Instalar paquetes necesarios (en este caso solo Bash, que ya viene en Ubuntu)
+RUN apt-get update && apt-get install -y curl && apt-get clean
+
+# Usar el argumento en un comando Bash
+RUN echo "Mensaje de build: $SALUDO desde Docker"
+
+# Establecer el shell interactivo como punto de entrada
+CMD ["/bin/bash"]
+🚀 Cómo usarlo paso a paso
+1. 📦 Construir la imagen con argumento personalizado
+bash
+Copiar
+Editar
+docker build --build-arg SALUDO="Hola mundo" -t bash-example .
+Este comando reemplaza $SALUDO por "Hola mundo" durante el build.
+
+2. 🖥️ Ejecutar el contenedor en modo interactivo (como una terminal Bash)
+bash
+Copiar
+Editar
+docker run -it bash-example
+Esto te abre una terminal bash interactiva dentro del contenedor, como si estuvieras en una sesión de Linux.
+
+✅ ¿Qué puedes hacer dentro?
+Una vez dentro del contenedor:
+
+bash
+Copiar
+Editar
+echo "Estoy dentro del contenedor!"
+ls /
+curl --version
+Puedes ejecutar cualquier comando como si estuvieras en una terminal Bash.
